@@ -18,6 +18,10 @@ services:
       - "5432:5432"
     networks:
       - nexuschat-network
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+      - 208.67.222.222
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U nexuschat -d nexuschat"]
       interval: 10s
@@ -71,6 +75,10 @@ services:
       - nexuschat-network
     volumes:
       - ./logs:/app/logs
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+      - 208.67.222.222
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
       interval: 30s
