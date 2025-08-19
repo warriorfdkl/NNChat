@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexusChat - Простой чат</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <div class="app-container">
+        <!-- Боковая панель со списком чатов -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>Чаты</h2>
+                <div class="header-buttons">
+                    <button class="new-chat-btn" id="newChatBtn" title="Новый чат">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                    <button class="logout-btn" id="logoutBtn" title="Выйти">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9M16 17L21 12M21 12L16 7M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="chat-list" id="chatList">
+                <div class="chat-item active" data-chat-id="2">
+                    <div class="chat-avatar">АИ</div>
+                    <div class="chat-info">
+                        <div class="chat-name">AI Помощник</div>
+                        <div class="chat-last-message">Чем могу помочь?</div>
+                    </div>
+                    <div class="chat-time">11:45</div>
+                </div>
+                
+                <div class="chat-item" data-chat-id="3">
+                    <div class="chat-avatar">ТП</div>
+                    <div class="chat-info">
+                        <div class="chat-name">Техподдержка</div>
+                        <div class="chat-last-message">Ваш вопрос решен</div>
+                    </div>
+                    <div class="chat-time">Вчера</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Основная область чата -->
+        <div class="chat-container">
+            <!-- Заголовок чата -->
+            <div class="chat-header">
+                <button class="menu-toggle" id="menuToggle">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+                <div class="chat-info">
+                    <div class="avatar" id="currentChatAvatar">АИ</div>
+                    <div class="chat-details">
+                        <h3 id="currentChatName">AI Помощник</h3>
+                        <span class="status" id="currentChatStatus">онлайн</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Область сообщений -->
+            <div class="messages-container" id="messagesContainer">
+                <div class="message received">
+                    <div class="message-content">
+                        <p>Чем могу помочь?</p>
+                        <span class="message-time">11:45</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Поле ввода сообщения -->
+            <div class="input-container">
+                <div class="input-wrapper">
+                    <input type="text" id="messageInput" placeholder="Введите сообщение..." maxlength="1000">
+                    <button id="sendButton" class="send-button">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M2 21L23 12L2 3V10L17 12L2 14V21Z" fill="currentColor"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

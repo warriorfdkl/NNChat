@@ -1,0 +1,132 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: nexuschat-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: nexuschat
+      POSTGRES_USER: nexuschat
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-nexuschat_password}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    ports:
+      - "5432:5432"
+    networks:
+      - nexuschat-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexuschat -d nexuschat"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # NexusChat Application
+  nexuschat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nexuschat-app
+    restart: unless-stopped
+    environment:
+      # Database Configuration
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: nexuschat
+      DB_USER: nexuschat
+      DB_PASSWORD: ${DB_PASSWORD:-nexuschat_password}
+      
+      # VitroCAD Configuration
+      VITROCAD_BASE_URL: ${VITROCAD_BASE_URL:-https://vc.cxpp.ru}
+      VITROCAD_LOGIN: ${VITROCAD_LOGIN}
+      VITROCAD_PASSWORD: ${VITROCAD_PASSWORD}
+      VITROCAD_USERS_LIST_ID: ${VITROCAD_USERS_LIST_ID:-e3a94bde-0ca9-456f-b338-4465d40389ee}
+      
+      # JWT Configuration
+      JWT_SECRET: ${JWT_SECRET:-your_super_secret_jwt_key_change_in_production}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-24h}
+      
+      # Server Configuration
+      PORT: 3000
+      NODE_ENV: ${NODE_ENV:-production}
+      
+      # Polling Configuration
+      POLLING_INTERVAL: ${POLLING_INTERVAL:-30000}
+      
+      # CORS Configuration
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:8000}
+      
+      # Rate Limiting
+      RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-900000}
+      RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-100}
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - nexuschat-network
+    volumes:
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Nginx Reverse Proxy (Optional)
+  nginx:
+    image: nginx:alpine
+    container_name: nexuschat-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./public:/usr/share/nginx/html:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - nexuschat
+    networks:
+      - nexuschat-network
+    profiles:
+      - production
+
+  # Redis for Session Storage (Optional)
+  redis:
+    image: redis:7-alpine
+    container_name: nexuschat-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_password}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - nexuschat-network
+    profiles:
+      - production
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  nexuschat-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
